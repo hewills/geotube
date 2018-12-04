@@ -16,8 +16,11 @@ Requires Google Maps and Youtube API key.
 ***
 ![Menu screen](/docs/geo4.png)
 
+### Result Page
 ***
-Listed results include title, view count and link
+![Menu screen](/docs/geo5.png)
+***
+Listed results include title, view count and link   
 
-Needs more work... limited results returned.
+Limited results returned.
 
