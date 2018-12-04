@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+    <style>
+	  body{ font: normal 12px "Lucida Sans Unicode", 14x "Lucida Grande", sans-serif; }
+	  h1  {color: red;}
+	  h2  {color: black;}
+    </style>
+
+    <h2>Geotube v{{ version }}</h2>
+
+    <legend><b>Selected Parameters</b></legend>
+    Limited to first 1,000 results<br>
+    * Required fields<p>
+
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+
+        <p>{{ form.keyword.label }}<font color=red>*</font> : {{ form.keyword(size=32) }}</p>
+        <p>{{ form.pub_after.label }}<font color=red>*</font> : {{ form.pub_after(size=32) }} (includes date)</p>
+        <p>{{ form.pub_before.label }}<font color=red>*</font> : {{ form.pub_before(size=32) }}</p>
+
+        <p>{{ form.live_only() }} {{ form.live_only.label }}</p>
+
+        <p>{{ form.submit() }}</p>
+
+    </form>
+<p>
+
+
+{% endblock %}

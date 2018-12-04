@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <style>
+	  body{ font: normal 10px "Lucida Sans Unicode", 12x "Lucida Grande", sans-serif; }
+	  h3  {color: red;}
+	  h2  {color: black;}
+    </style>
+
+    <p>
+
+    <h2>RESULTS</h2>
+    <h3>Parameters:</h3>
+    <b>Latitude, Longitude:</b> {{ yt.lat_long }} | <b>Radius:</b> {{ yt.radius }} | <b>Live: </b> {{ yt.live_event }} | <b>Published: </b> {{ yt.pub_after }} to {{ yt.pub_before }}
+    | <b>Keyword(s):</b> {{ yt.keyword }}
+    <br>Approx results found: {{ yt.total_results }} | Limited to first 1,000 results.
+    <p>
+    If no results are displayed, go HOME and adjust your parameters
+    <p>
+
+   {% for n in range(yt.list_ids| length) %}
+
+        <br>
+        {{ yt.list_titles[n] }} | Views: {{ yt.list_stats[n] }}
+        <br>
+        <a href="https://www.youtube.com/watch?v={{ yt.list_ids[n] }}" target="_blank">https://www.youtube.com/watch?v={{ yt.list_ids[n] }}</a>
+        <br>
+
+   {% endfor %}
+
+
+
+{% endblock %}

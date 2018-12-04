@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+    <style>
+       /* Set the size of the div element that contains the map */
+      #map_box {
+        height: 600px;  /* The height is 400 pixels */
+        width: 75%;  /* The width is the width of the web page */
+       }
+
+	  body{ font: normal 12px "Lucida Sans Unicode", 14x "Lucida Grande", sans-serif; }
+	  h1  {color: red;}
+	  h2  {color: black;}
+    </style>
+
+    <h2>Geotube v{{ version }}</h2>
+
+    <!--The div element for the map-->
+    <div id="map_box"></div>
+
+    <p>
+    <legend><b>Selected Coordinates</b></legend>
+    Limited to first 1,000 results<br>
+
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.lat_long.label }}<font color=red>*</font><br>
+            {{ form.lat_long(size=32) }}
+        </p>
+        <p>
+            {{ form.radius.label }}<font color=red>*</font><br>
+            {{ form.radius(size=32) }}
+        </p>
+
+        <b>Optional:</b>
+
+        <p>{{ form.pub_after.label }} : {{ form.pub_after(size=32) }} (includes date)</p>
+        <p>{{ form.pub_before.label }} : {{ form.pub_before(size=32) }}</p>
+
+        <p>{{ form.keyword.label }} : {{ form.keyword(size=32) }}</p>
+
+        <p>{{ form.live_only() }} {{ form.live_only.label }}</p>
+
+        <p>{{ form.submit() }}</p>
+
+    </form>
+
+    <script>
+
+    // Initialize and add the map
+    function initMap() {
+
+        // Starting position 41.6470476,-91.5743827
+        var start_pos = {lat: 47.38447313, lng: 14.177247612};
+
+        // The map, centered at starting position
+        var map = new google.maps.Map(
+            document.getElementById('map_box'), {zoom: 8, center: start_pos});
+
+        // The marker at starting position
+        var marker = new google.maps.Marker({position: start_pos, map: map});
+
+
+        // Add circle overlay and set to same center as default marker
+        var circle = new google.maps.Circle({
+            map: map,
+            radius: 9000,  //in meters
+            fillColor: '#ff0000',
+	        fillOpacity: 0.2,
+            strokeWeight: 0,
+	        editable: false,
+	        visible: true,
+	        clickable: false
+        });
+
+        circle.setCenter(start_pos);
+
+        //Set text box with coordinates
+        document.getElementById('{{ form.lat_long.id }}').value = start_pos.lat + ',' + start_pos.lng;
+        document.getElementById('{{ form.radius.id }}').value = 9000;
+
+        // ****** CLICK EVENTS ********
+        //Listen for user clicks
+        google.maps.event.addListener(map, 'click', function(event) {
+
+            // Remove old marker
+            marker.setMap(null);
+
+            // Place new marker
+            marker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map
+            });
+
+        <!-- Show Lat/Long in text box for user -->
+        document.getElementById('{{ form.lat_long.id }}').value = event.latLng.lat() + ',' + event.latLng.lng();
+
+        <!-- Draw new Circle on map at click location, with user-entered radius -->
+	    var radius = document.getElementById('{{ form.radius.id }}').value;
+        circle.setCenter(event.latLng);
+	    circle.setRadius(parseFloat(radius));
+
+        });
+        // *** end of clicks ***
+    }
+    </script>
+
+<p>
+<p>
+    <!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The callback parameter executes the initMap() function
+	* map_key is your google maps API key
+    -->
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ map_key }}&callback=initMap">
+    </script>
+
+<p>
+
+
+{% endblock %}

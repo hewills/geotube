@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <style>
+	  body{ font: normal 12px "Lucida Sans Unicode", 14x "Lucida Grande", sans-serif; }
+	  h1  {color: red;}
+	  h2  {color: black;}
+    </style>
+
+    <h2>Geotube v{{ version }}</h2>
+
+    <h2><b>Live Videos</b></h2>
+    Limited to first 1,000 results
+    <p>
+
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+
+        <p>{{ form.keyword.label }}<font color=red>*</font> : {{ form.keyword(size=32) }}</p>
+
+        <p>{{ form.submit() }}</p>
+
+    </form>
+<p>
+
+{% endblock %}
