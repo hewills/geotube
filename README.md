@@ -1,5 +1,6 @@
 # Geotube v1.0
-## Youtube video locator built in Flask/Python   
+## Youtube video locator built in Flask/Python  
+Find youtube videos using the locator geotag parameters. Demo at: http://geotube.pythonanywhere.com/
 Requires Google Maps and Youtube API key.   
 ***
 ![Menu screen](/docs/geo1.png)
