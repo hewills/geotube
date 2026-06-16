@@ -2,124 +2,172 @@
 
 {% block content %}
 
+<style>
+   /* Set the size of the div element that contains the map */
+  #map_box {
+    height: 600px;
+    width: 75%;
+  }
 
-    <style>
-       /* Set the size of the div element that contains the map */
-      #map_box {
-        height: 600px;  /* The height is 400 pixels */
-        width: 75%;  /* The width is the width of the web page */
-       }
+  body { font: normal 12px "Lucida Sans Unicode", 14px "Lucida Grande", sans-serif; }
+  h1  { color: red; }
+  h2  { color: black; }
 
-	  body{ font: normal 12px "Lucida Sans Unicode", 14x "Lucida Grande", sans-serif; }
-	  h1  {color: red;}
-	  h2  {color: black;}
-    </style>
+  /* Leaflet default icon fixes for some frameworks */
+  .leaflet-container {
+    background: #f8f8f8;
+  }
+</style>
 
-    <h2>Geotube v{{ version }}</h2>
+<h2>Geotube v{{ version }}</h2>
 
-    <!--The div element for the map-->
-    <div id="map_box"></div>
+<!-- Map container -->
+<div id="map_box"></div>
 
+<p>
+<legend><b>Selected Coordinates</b></legend>
+Limited to first 1,000 results<br>
+
+<form action="" method="post">
+    {{ form.hidden_tag() }}
     <p>
-    <legend><b>Selected Coordinates</b></legend>
-    Limited to first 1,000 results<br>
+        {{ form.lat_long.label }}<font color=red>*</font><br>
+        {{ form.lat_long(size=32) }}
+        <button type="button" id="updateMapBtn">Move Map Pin Here</button>
+    </p>
+    <p>
+        {{ form.radius.label }}<font color=red>*</font><br>
+        {{ form.radius(size=32) }}
+    </p>
 
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.lat_long.label }}<font color=red>*</font><br>
-            {{ form.lat_long(size=32) }}
-        </p>
-        <p>
-            {{ form.radius.label }}<font color=red>*</font><br>
-            {{ form.radius(size=32) }}
-        </p>
+    <b>Optional:</b>
 
-        <b>Optional:</b>
+    <p>{{ form.pub_after.label }} : {{ form.pub_after(size=32) }} (includes date)</p>
+    <p>{{ form.pub_before.label }} : {{ form.pub_before(size=32) }}</p>
 
-        <p>{{ form.pub_after.label }} : {{ form.pub_after(size=32) }} (includes date)</p>
-        <p>{{ form.pub_before.label }} : {{ form.pub_before(size=32) }}</p>
+    <p>{{ form.keyword.label }} : {{ form.keyword(size=32) }}</p>
+    <p>{{ form.max_views.label }} : {{ form.max_views(size=32) }}</p>
+    <p>{{ form.max_subscribers.label }} : {{ form.max_subscribers(size=32) }}</p>
+    <p>{{ form.max_comments.label }} : {{ form.max_comments(size=32) }}</p>
 
-        <p>{{ form.keyword.label }} : {{ form.keyword(size=32) }}</p>
+    <p>{{ form.live_only() }} {{ form.live_only.label }}</p>
 
-        <p>{{ form.live_only() }} {{ form.live_only.label }}</p>
+    <p>{{ form.submit() }}</p>
+</form>
 
-        <p>{{ form.submit() }}</p>
+<!-- Leaflet CSS -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet/dist/leaflet.css"
+/>
 
-    </form>
+<!-- Leaflet JS -->
+<script
+  src="https://unpkg.com/leaflet/dist/leaflet.js">
+</script>
 
-    <script>
+<script>
+// *************** LEAFLET VERSION (NO GOOGLE MAPS) ***************
+// Normalize longitude into -180 .. 180 range
+function normalizeLongitude(lng) {
+    while (lng < -180) lng += 360;
+    while (lng > 180) lng -= 360;
+    return lng;
+}
 
-    // Initialize and add the map
-    function initMap() {
+// Starting position
+var start_lat = 40.227625;
+var start_lng = -111.636852;
+var start_pos = [start_lat, start_lng];
 
-        // Starting position 41.6470476,-91.5743827
-        var start_pos = {lat: 47.38447313, lng: 14.177247612};
+// Initial radius
+var start_radius = 9000;
 
-        // The map, centered at starting position
-        var map = new google.maps.Map(
-            document.getElementById('map_box'), {zoom: 8, center: start_pos});
+// Initialize map
+var map = L.map('map_box').setView(start_pos, 8);
 
-        // The marker at starting position
-        var marker = new google.maps.Marker({position: start_pos, map: map});
+// Load OpenStreetMap tiles (free forever)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
+
+// Marker
+var marker = L.marker(start_pos).addTo(map);
+
+// Circle
+var circle = L.circle(start_pos, {
+    radius: start_radius,
+    color: null,
+    fillColor: '#ff0000',
+    fillOpacity: 0.2,
+    stroke: false
+}).addTo(map);
+
+// Set initial form values
+document.getElementById('{{ form.lat_long.id }}').value = start_lat + ',' + start_lng;
+document.getElementById('{{ form.radius.id }}').value = start_radius;
+
+// ************** CLICK HANDLING **************
+map.on('click', function(e) {
+    var lat = e.latlng.lat;
+    var lng = normalizeLongitude(e.latlng.lng);
 
 
-        // Add circle overlay and set to same center as default marker
-        var circle = new google.maps.Circle({
-            map: map,
-            radius: 9000,  //in meters
-            fillColor: '#ff0000',
-	        fillOpacity: 0.2,
-            strokeWeight: 0,
-	        editable: false,
-	        visible: true,
-	        clickable: false
-        });
+    // Update marker location
+    marker.setLatLng(e.latlng);
 
-        circle.setCenter(start_pos);
+    // Update form box
+    document.getElementById('{{ form.lat_long.id }}').value = lat + ',' + lng;
 
-        //Set text box with coordinates
-        document.getElementById('{{ form.lat_long.id }}').value = start_pos.lat + ',' + start_pos.lng;
-        document.getElementById('{{ form.radius.id }}').value = 9000;
+    // Update circle radius & location
+    var radius = parseFloat(document.getElementById('{{ form.radius.id }}').value);
+    circle.setLatLng(e.latlng);
+    circle.setRadius(radius);
+});
 
-        // ****** CLICK EVENTS ********
-        //Listen for user clicks
-        google.maps.event.addListener(map, 'click', function(event) {
+// ************** If radius changes manually, update circle live **************
+document.getElementById('{{ form.radius.id }}').addEventListener('input', function() {
+    var radius = parseFloat(this.value);
+    circle.setRadius(radius);
+});
 
-            // Remove old marker
-            marker.setMap(null);
+// ************** Manual Lat/Lng Update Button **************
+document.getElementById('updateMapBtn').addEventListener('click', function() {
+    var input = document.getElementById('{{ form.lat_long.id }}').value.trim();
+    // Allow spaces and enforce comma separation
+    var parts = input.replace(/\s+/g, '').split(',');
 
-            // Place new marker
-            marker = new google.maps.Marker({
-                    position: event.latLng,
-                    map: map
-            });
-
-        <!-- Show Lat/Long in text box for user -->
-        document.getElementById('{{ form.lat_long.id }}').value = event.latLng.lat() + ',' + event.latLng.lng();
-
-        <!-- Draw new Circle on map at click location, with user-entered radius -->
-	    var radius = document.getElementById('{{ form.radius.id }}').value;
-        circle.setCenter(event.latLng);
-	    circle.setRadius(parseFloat(radius));
-
-        });
-        // *** end of clicks ***
+    if (parts.length !== 2) {
+        alert("Please enter coordinates as: lat,lng");
+        return;
     }
-    </script>
+
+    var lat = parseFloat(parts[0]);
+    var lng = normalizeLongitude(parseFloat(parts[1]));
+
+    if (isNaN(lat) || isNaN(lng)) {
+        alert("Coordinates must be valid numbers!");
+        return;
+    }
+
+    var newPos = [lat, lng];
+
+    marker.setLatLng(newPos);
+    map.setView(newPos);
+
+    var radius = parseFloat(document.getElementById('{{ form.radius.id }}').value);
+    circle.setLatLng(newPos);
+    circle.setRadius(radius);
+
+    // Center map and zoom in tighter for clarity
+    map.setView(newPos, 12);
+
+});
+
+</script>
+<p>
 
 <p>
-<p>
-    <!--Load the API from the specified URL
-    * The async attribute allows the browser to render the page while the API loads
-    * The callback parameter executes the initMap() function
-	* map_key is your google maps API key
-    -->
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key={{ map_key }}&callback=initMap">
-    </script>
-
-<p>
-
+<br> Use of this app assumes agreement with our <a href = "about">Privacy Policy</a>. <br>
 
 {% endblock %}
