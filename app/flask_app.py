@@ -1,8 +1,9 @@
 from flask import Flask
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, request #flash, redirect, url_for
 from config import Config
 from app.forms import LoginForm, SearchDateForm, SearchLiveForm
 from app.youtube import YouTube
+from app.youtube_flask import YouTubeSearch  # your new class
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -11,18 +12,39 @@ app.config.from_object(Config)
 def search_location(form):
     version = app.config['VERSION']
 
-    ll = request.form['lat_long']
-    rad = request.form['radius']
-    pub_before = request.form.get('pub_before')
-    pub_after = request.form.get('pub_after') #Returns format 2018-09-01
-    keyword = request.form.get('keyword')
-    live = request.form.get('live_only')
+    # Grab values from form
+    ll = form.lat_long.data
+    rad = form.radius.data
+    pub_after = form.pub_after.data
+    pub_before = form.pub_before.data
+    keyword = form.keyword.data
+    live = form.live_only.data
 
-    # Youtube search based on location and radius
-    yt = YouTube(ll,rad,live,pub_after,pub_before,keyword,'index')
+    # Optional filters (default to None if empty)
+    max_views = form.max_views.data or None
+    max_subs = form.max_subscribers.data or None
+    max_comments = form.max_comments.data or None
+
+     # Youtube search based on form
+    yt = YouTubeSearch(
+        lat_long=ll,
+        rad=rad,
+        live=live,
+        pub_after=pub_after,
+        pub_before=pub_before,
+        keyword=keyword,
+        max_views=max_views,
+        max_subscribers=max_subs,
+        max_comments=max_comments
+    )
     yt.search()
 
-    return render_template('vids.html', title='RESULTS',version=version,lat_long=ll,radius=rad, yt=yt)
+    return render_template(
+        'vids.html',
+        title='RESULTS',
+        version=version,
+        yt=yt
+    )
 
 # Run Youtube search by Date -----------
 def search_date(form):
@@ -38,14 +60,14 @@ def search_date(form):
     yt.search()
 
     return render_template('vids.html', title='RESULTS',version=version,lat_long='',radius='', yt=yt)
-    
+
 # Run Youtube search Live Only -----------
 def search_live(form):
     version = app.config['VERSION']
 
     keyword = request.form.get('keyword')
     live = 'y'
-    
+
     # Youtube search based on location and radius
     yt = YouTube('','',live,'','',keyword,'index3')
     yt.search()
@@ -64,6 +86,7 @@ def index():
 
     if form.validate_on_submit():
         return search_location(form)
+        #return redirect(url_for('index'))
 
     return render_template('index.html', title='Home', version=version, form=form, map_key=map_key)
 
@@ -79,7 +102,7 @@ def index2():
         return search_date(form)
 
     return render_template('index2.html', title='Home-by Date', version=version, form=form)
-    
+
 # Index - Page (Live Only videos by Keyword)
 @app.route('/index3', methods=['GET', 'POST'])
 

@@ -2,33 +2,56 @@
 
 {% block content %}
 
-    <style>
-	  body{ font: normal 10px "Lucida Sans Unicode", 12x "Lucida Grande", sans-serif; }
-	  h3  {color: red;}
-	  h2  {color: black;}
-    </style>
+<style>
+    body { font: normal 12px "Lucida Sans Unicode", 14px "Lucida Grande", sans-serif; }
+    h3  {color: red;}
+    h2 { color: black; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+</style>
+<p></p>
 
-    <p>
+<h2>RESULTS</h2>
+<h3>Search Parameters:</h3>
+<b>Latitude, Longitude:</b> {{ yt.lat_long or 'N/A' }} |
+<b>Radius:</b> {{ yt.radius or 'N/A' }} |
+<b>Live:</b> {{ yt.live_event }} |
+<b>Max Subs:</b> {{ yt.max_subscribers }} |
+<b>Max Views:</b> {{ yt.max_views }} |
+<b>Max Comments:</b> {{ yt.max_comments }} |
+<b>Published:</b> {{ yt.pub_after or 'N/A' }} to {{ yt.pub_before or 'N/A' }} |
+<b>Keyword(s):</b> {{ yt.keyword or 'None' }}<br>
+Approx results found: {{ yt.total_results }}
+<p>
+If no results are displayed, go HOME and adjust your parameters.
+<p>
 
-    <h2>RESULTS</h2>
-    <h3>Parameters:</h3>
-    <b>Latitude, Longitude:</b> {{ yt.lat_long }} | <b>Radius:</b> {{ yt.radius }} | <b>Live: </b> {{ yt.live_event }} | <b>Published: </b> {{ yt.pub_after }} to {{ yt.pub_before }}
-    | <b>Keyword(s):</b> {{ yt.keyword }}
-    <br>Approx results found: {{ yt.total_results }} | Limited to first 1,000 results.
-    <p>
-    If no results are displayed, go HOME and adjust your parameters
-    <p>
-
-   {% for n in range(yt.list_ids| length) %}
-
-        <br>
-        {{ yt.list_titles[n] }} | Views: {{ yt.list_stats[n] }}
-        <br>
-        <a href="https://www.youtube.com/watch?v={{ yt.list_ids[n] }}" target="_blank">https://www.youtube.com/watch?v={{ yt.list_ids[n] }}</a>
-        <br>
-
-   {% endfor %}
-
-
-
+{% if yt.list_ids %}
+    <table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Views</th>
+            <th>Channel Subs</th>
+            <th>Comments</th>
+            <th>Link</th>
+        </tr>
+        {% for i in range(yt.list_ids|length) %}
+        <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ yt.list_titles[i] }}</td>
+            <td>{{ "{:,}".format(yt.list_views[i]) if yt.list_views[i] is not none else 'N/A' }}</td>
+            <td>{{ "{:,}".format(yt.list_subs[i]) if yt.list_subs[i] is not none else 'N/A' }}</td>
+            <td>{{ "{:,}".format(yt.list_comments[i]) if yt.list_comments[i] is not none else 'N/A' }}</td>
+            <td><a href="https://www.youtube.com/watch?v={{ yt.list_ids[i] }}" target="_blank">Watch</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No videos found for these parameters.</p>
+{% endif %}
+<p>
+<br> Use of this app assumes agreement with our <a href = "about">Privacy Policy</a>. <br>
+<p></p>
 {% endblock %}
