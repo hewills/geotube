@@ -2,7 +2,7 @@ from flask import Flask
 from flask import render_template, request #flash, redirect, url_for
 from config import Config
 from app.forms import LoginForm, SearchDateForm, SearchLiveForm
-from app.youtube import YouTube
+#from app.youtube import YouTube # no longer used
 from app.youtube_flask import YouTubeSearch  # your new class
 
 app = Flask(__name__)
@@ -50,29 +50,43 @@ def search_location(form):
 def search_date(form):
     version = app.config['VERSION']
 
-    pub_before = request.form.get('pub_before')
-    pub_after = request.form.get('pub_after') #Returns format 2018-09-01
-    keyword = request.form.get('keyword')
-    live = request.form.get('live_only')
+    pub_before = form.pub_before.data
+    pub_after = form.pub_after.data
+    keyword = form.keyword.data
+    live = form.live_only.data
 
-    # Youtube search based on location and radius
-    yt = YouTube('','',live,pub_after,pub_before,keyword,'index2')
+    # Youtube search using the same class as search_location for consistent attributes
+    yt = YouTubeSearch(
+        lat_long='',
+        rad='',
+        live=live,
+        pub_after=pub_after,
+        pub_before=pub_before,
+        keyword=keyword
+    )
     yt.search()
 
-    return render_template('vids.html', title='RESULTS',version=version,lat_long='',radius='', yt=yt)
+    return render_template('vids.html', title='RESULTS', version=version, yt=yt)
 
 # Run Youtube search Live Only -----------
 def search_live(form):
     version = app.config['VERSION']
 
-    keyword = request.form.get('keyword')
-    live = 'y'
+    keyword = form.keyword.data
+    live = True
 
-    # Youtube search based on location and radius
-    yt = YouTube('','',live,'','',keyword,'index3')
+    # Youtube search using the same class as search_location for consistent attributes
+    yt = YouTubeSearch(
+        lat_long='',
+        rad='',
+        live=live,
+        pub_after=None,
+        pub_before=None,
+        keyword=keyword
+    )
     yt.search()
 
-    return render_template('vids.html', title='RESULTS',version=version,lat_long='',radius='', yt=yt)
+    return render_template('vids.html', title='RESULTS', version=version, yt=yt)
 
 # Index - Home Page (videos by Location)
 @app.route('/', methods=['GET', 'POST'])
