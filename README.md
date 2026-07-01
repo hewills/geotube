@@ -1,4 +1,4 @@
-# Geotube v1.0
+# Geotube v2.0
 
 **Find YouTube videos by location, keyword, or live status — built with Flask/Python.**
 
